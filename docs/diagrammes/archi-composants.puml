@@ -1,0 +1,41 @@
+@startuml
+!include skin.iuml
+skinparam linetype ortho
+actor "Utilisateurs\n(clients, commerciaux,\nservice livraisons)" as U
+node "Hôte Docker (Docker Compose — hébergeur à définir)" {
+  node "Conteneur web\nNginx" as WEB {
+    component "SPA Angular 22\n(fichiers statiques)" as SPA
+    component "Reverse proxy\nTLS, /api → back" as RP
+  }
+  node "Conteneur api (×N)\nEclipse Temurin 25 JRE" as API {
+    component "API REST Spring Boot 4.1" as BOOT {
+      portin "/api/v1" as P
+      component "Contrôleurs REST\n+ validation (DTO)" as CTRL
+      component "Spring Security\nJWT, rôles CLIENT / SALES / DELIVERY" as SEC
+      component "Services métier\nclients · livraisons · facturation" as SVC
+      component "Repositories\nSpring Data JPA" as REPO
+      component "Actuator + Micrometer\nsanté, métriques, traces" as ACT
+    }
+  }
+  database "Conteneur db\nPostgreSQL 18\n(volume persistant)" as DB
+  node "Supervision" as OBS {
+    component "Prometheus" as PROM
+    component "Grafana\n(tableaux de bord, alertes)" as GRAF
+    component "Loki\n(journaux JSON)" as LOKI
+  }
+  component "Flyway\n(migrations au démarrage)" as FLY
+}
+U --> RP : HTTPS 443
+RP --> SPA : fichiers statiques
+RP --> P : HTTP JSON (réseau interne)
+P --> SEC
+SEC --> CTRL
+CTRL --> SVC
+SVC --> REPO
+REPO --> DB : JDBC — pool HikariCP
+FLY --> DB
+PROM --> ACT : scrape /actuator/prometheus
+GRAF --> PROM
+GRAF --> LOKI
+API ..> LOKI : logs (stdout)
+@enduml

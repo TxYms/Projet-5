@@ -1,0 +1,35 @@
+@startuml
+!include skin.iuml
+left to right direction
+actor "Client\n(entreprise)" as C
+actor "Service\ncommercial" as S
+actor "Service\nlivraisons" as L
+rectangle "CRM LiVrai cible" {
+  usecase "S'inscrire\n(création de compte autonome)" as U1
+  usecase "Créer un compte client\n(clients gérés)" as U2
+  usecase "Gérer les informations client\n(société, contacts, adresses)" as U3
+  usecase "Commander une livraison" as U4
+  usecase "Suivre ses livraisons\n(statut, historique)" as U5
+  usecase "Traiter les demandes\n(accepter / refuser / planifier)" as U6
+  usecase "Mettre à jour le statut\n(en transit, livrée)" as U7
+  usecase "Gérer la facturation\n(émettre, suivre le paiement)" as U8
+  usecase "Consulter ses factures" as U9
+  usecase "Consulter l'historique\ndes livraisons" as U10
+}
+C --> U1
+C --> U3
+C --> U4
+C --> U5
+C --> U9
+U2 <-- S
+U3 <-- S
+U4 <-- S
+U8 <-- S
+U10 <-- S
+U6 <-- L
+U7 <-- L
+U8 <-- L
+U10 <-- L
+note "Le service commercial peut agir\npour le compte d'un client géré" as N1
+N1 .. U4
+@enduml

@@ -1,0 +1,91 @@
+@startuml
+!include skin.iuml
+hide circle
+skinparam linetype ortho
+skinparam classBackgroundColor #FFFFFF
+skinparam classBorderColor #2E5C8A
+skinparam classHeaderBackgroundColor #EAF2FB
+entity "customer" as customer {
+  * id : BIGINT <<PK>>
+  --
+  * company_name : VARCHAR(150)
+  siret : CHAR(14) <<UQ>>
+  vat_number, phone, billing_email
+  * managed_by_sales : BOOLEAN
+  * origin : SELF_SIGNUP | SALES
+  sales_rep_id : BIGINT <<FK>>
+  * active, created_at, updated_at, version
+}
+entity "app_user" as app_user {
+  * id : BIGINT <<PK>>
+  --
+  * email : VARCHAR(255) <<UQ lower()>>
+  * password_hash : VARCHAR(100)
+  * first_name, last_name
+  * role : CLIENT | SALES | DELIVERY
+  customer_id : BIGINT <<FK>>
+  * enabled, last_login_at, created_at, ...
+}
+entity "address" as address {
+  * id : BIGINT <<PK>>
+  --
+  * customer_id : BIGINT <<FK>>
+  * label, line1, line2
+  * postal_code, city, country_code
+  * is_billing, archived
+}
+entity "delivery" as delivery {
+  * id : BIGINT <<PK>>
+  --
+  * reference : VARCHAR(20) <<UQ>>
+  * customer_id : BIGINT <<FK>>
+  * ordered_by_id : BIGINT <<FK>>
+  * pickup_address_id : BIGINT <<FK>>
+  * delivery_address_id : BIGINT <<FK>>
+  * requested_date : DATE
+  planned_date : DATE
+  * volume_m3 : NUMERIC(8,2)
+  * weight_kg : NUMERIC(10,2)
+  * package_count, instructions
+  * status : PENDING … DELIVERED
+  quoted_price : NUMERIC(12,2)
+  * created_at, updated_at, version
+}
+entity "delivery_status_history" as hist {
+  * id : BIGINT <<PK>>
+  --
+  * delivery_id : BIGINT <<FK>>
+  from_status, * to_status
+  changed_by_id : BIGINT <<FK>>
+  comment, * changed_at
+}
+entity "invoice" as invoice {
+  * id : BIGINT <<PK>>
+  --
+  * number : VARCHAR(20) <<UQ>>
+  * customer_id : BIGINT <<FK>>
+  * billing_address_id : BIGINT <<FK>>
+  * status : DRAFT | ISSUED | PAID | CANCELLED
+  issue_date, due_date, paid_at
+  * total_excl_tax, vat_rate, total_incl_tax
+  * created_by_id : BIGINT <<FK>>
+}
+entity "invoice_line" as line {
+  * id : BIGINT <<PK>>
+  --
+  * invoice_id : BIGINT <<FK>>
+  * delivery_id : BIGINT <<FK, UQ>>
+  * description
+  * amount_excl_tax : NUMERIC(12,2)
+}
+customer ||--o{ app_user : "utilisateurs"
+app_user |o--o{ customer : "commercial référent"
+customer ||--o{ address
+customer ||--o{ delivery
+app_user ||--o{ delivery : "commandée par"
+address ||--o{ delivery : "enlèvement / livraison"
+delivery ||--o{ hist
+customer ||--o{ invoice
+invoice ||--|{ line
+delivery ||--o| line : "facturée une fois"
+@enduml
