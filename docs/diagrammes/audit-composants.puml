@@ -1,0 +1,31 @@
+@startuml
+!include skin.iuml
+node "Poste utilisateur" {
+  component "Navigateur web\n(pages HTML rendues côté serveur)" as NAV
+}
+node "Serveur d'application — Apache Tomcat 8.5 (JVM, Java 1.6 cible)" {
+  component "AuthenticationFilter\n(contrôle de session sur /*)" as F
+  package "Couche présentation / contrôle" {
+    component "Servlets\nLogin, Logout, Home,\nClients, Command,\nDeliveries, Delivery" as S
+    component "Vues JSP + JSTL\nlogin, index, clients,\ncommand, deliveries" as JSP
+  }
+  package "Couche accès aux données" {
+    component "UserDao / DeliveryDao" as DAO
+    component "AbstractDao\nJDBC DriverManager\n(identifiants en dur)" as AD
+  }
+  component "Beans\nUser, Delivery" as B
+}
+database "MySQL 8\nbase « livrai »" as DB {
+  [table user] as TU
+  [table delivery] as TD
+}
+NAV --> F : HTTP (formulaires GET/POST)\nsession JSESSIONID
+F --> S
+F ..> DAO : 1 requête SQL\npar requête HTTP
+S --> JSP : forward
+S --> DAO
+S ..> B
+DAO --> AD
+AD --> DB : JDBC (MySQL Connector/J 8.0.32)\nnouvelle connexion par DAO,\njamais fermée
+note bottom of S : Logique métier dans les servlets :\npas de couche service
+@enduml

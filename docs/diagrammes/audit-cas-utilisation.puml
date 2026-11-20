@@ -1,0 +1,27 @@
+@startuml
+!include skin.iuml
+left to right direction
+actor "Client\n(entreprise)" as C
+actor "Administrateur\nLiVrai" as A
+rectangle "CRM LiVrai actuel" {
+  usecase "Commander une livraison\n(volume, poids)" as UC1
+  usecase "Consulter ses livraisons\n(à venir / passées)" as UC2
+  usecase "Se connecter /\nse déconnecter" as UC0
+  usecase "Consulter toutes les livraisons" as UC5
+  usecase "Accepter une livraison" as UC6
+  usecase "Refuser une livraison\n(en échec : HTTP 405)" as UC7
+  usecase "Facturer une livraison\n(saisie du prix)" as UC8
+  usecase "Consulter la liste des clients" as UC3
+  usecase "Créer un compte client\n(seul moyen d'inscription)" as UC4
+}
+C --> UC1
+C --> UC2
+C --> UC0
+UC0 <-- A
+UC5 <-- A
+UC6 <-- A
+UC7 <-- A
+UC8 <-- A
+UC3 <-- A
+UC4 <-- A
+@enduml
