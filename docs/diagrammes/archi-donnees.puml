@@ -24,7 +24,8 @@ entity "app_user" as app_user {
   * first_name, last_name
   * role : CLIENT | SALES | DELIVERY
   customer_id : BIGINT <<FK>>
-  * enabled, last_login_at, created_at, ...
+  * enabled, password_change_required
+  last_login_at, created_at, ...
 }
 entity "address" as address {
   * id : BIGINT <<PK>>
@@ -62,7 +63,7 @@ entity "delivery_status_history" as hist {
 entity "invoice" as invoice {
   * id : BIGINT <<PK>>
   --
-  * number : VARCHAR(20) <<UQ>>
+  number : VARCHAR(20) <<UQ, à l'émission>>
   * customer_id : BIGINT <<FK>>
   * billing_address_id : BIGINT <<FK>>
   * status : DRAFT | ISSUED | PAID | CANCELLED

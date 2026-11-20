@@ -49,6 +49,7 @@ CREATE TABLE app_user (
     role              VARCHAR(20)  NOT NULL,
     customer_id       BIGINT       REFERENCES customer (id),
     enabled           BOOLEAN      NOT NULL DEFAULT TRUE,
+    password_change_required BOOLEAN NOT NULL DEFAULT FALSE,  -- TRUE pour les comptes repris de l'ancien CRM
     last_login_at     TIMESTAMPTZ,
     created_at        TIMESTAMPTZ  NOT NULL DEFAULT now(),
     updated_at        TIMESTAMPTZ  NOT NULL DEFAULT now(),
@@ -153,7 +154,7 @@ CREATE INDEX ix_status_history_delivery ON delivery_status_history (delivery_id,
 -- -----------------------------------------------------------------------------
 CREATE TABLE invoice (
     id                BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    number            VARCHAR(20)   NOT NULL UNIQUE,     -- numérotation continue (obligation légale)
+    number            VARCHAR(20)   UNIQUE,              -- attribué à l'émission : numérotation continue (obligation légale)
     customer_id       BIGINT        NOT NULL REFERENCES customer (id),
     billing_address_id BIGINT       NOT NULL REFERENCES address (id),
     status            VARCHAR(20)   NOT NULL DEFAULT 'DRAFT',
@@ -169,7 +170,7 @@ CREATE TABLE invoice (
     version           INTEGER       NOT NULL DEFAULT 0,
     CONSTRAINT ck_invoice_status CHECK (status IN ('DRAFT', 'ISSUED', 'PAID', 'CANCELLED')),
     CONSTRAINT ck_invoice_totals CHECK (total_excl_tax >= 0 AND total_incl_tax >= total_excl_tax),
-    CONSTRAINT ck_invoice_issued CHECK (status = 'DRAFT' OR (issue_date IS NOT NULL AND due_date >= issue_date)),
+    CONSTRAINT ck_invoice_issued CHECK (status = 'DRAFT' OR (number IS NOT NULL AND issue_date IS NOT NULL AND due_date >= issue_date)),
     CONSTRAINT ck_invoice_paid   CHECK ((status = 'PAID') = (paid_at IS NOT NULL))
 );
 
