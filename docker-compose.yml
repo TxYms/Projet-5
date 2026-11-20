@@ -1,0 +1,20 @@
+# Base PostgreSQL de la refonte, initialisée avec les migrations de db/migration.
+# Usage : docker compose up -d   puis   psql -h localhost -U livrai livrai
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: livrai
+      POSTGRES_USER: livrai
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-livrai-dev}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db/migration:/docker-entrypoint-initdb.d:ro
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U livrai -d livrai"]
+      interval: 5s
+      retries: 10
+volumes:
+  pgdata:
